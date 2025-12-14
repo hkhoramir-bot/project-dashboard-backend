@@ -1,36 +1,46 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-
-// ... بقیه کد
-
+import { ValidationPipe } from '@nestjs/common'; // ایمپورت برای اعتبارسنجی داده‌ها
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // حذف اسلش انتهایی از آدرس Codespace (بسیار مهم)
+  // === ۱. تنظیم مسیردهی ===
+  // تعریف پیشوند سراسری 'api/v1' برای تمامی مسیرها.
+  // این خط برای رفع خطای 404 ضروری است.
+  app.setGlobalPrefix('api/v1'); 
+  
+  // تنظیمات اعتبارسنجی سراسری برای DTOها (مانند RegisterUserDto)
+  app.useGlobalPipes(new ValidationPipe({
+      whitelist: true, // فقط فیلدهای تعریف شده در DTO را قبول می‌کند
+      transform: true, // اطمینان از تبدیل داده‌های ورودی به نوع صحیح
+  }));
+
+  // === ۲. تنظیمات CORS ===
   const allowedOrigins = [
-    'https://automatic-couscous-69q5wq9pv4gq35vj-5174.app.github.dev', // ✅ اصلاح شد (اسلش / آخر حذف شد)
+    // آدرس Codespace شما (بدون اسلش انتهایی)
+    'https://automatic-couscous-69q5wq9pv4gq35vj-5174.app.github.dev', 
+    // آدرس لوکال برای توسعه
     'http://localhost:5174',
-    // آدرس‌های production آینده را اینجا اضافه کنید
+    // آدرس فرانت‌اند استقرار یافته (Production) را اینجا اضافه کنید
+    // 'https://your-production-frontend.com', 
   ];
 
   app.enableCors({
-    // استفاده از تابع Callback برای کنترل دقیق مبدأ
     origin: (origin, callback) => {
-      // اگر درخواستی از طریق ابزارهایی مانند Postman یا Curl بود (origin=undefined)
-      // یا اگر origin در لیست مجاز (allowedOrigins) بود، اجازه دسترسی بده.
+      // اگر از Postman یا Curl درخواست آمد (origin undefined است) یا در لیست مجاز بود، قبول کن.
       if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true); // اجازه داده شد
+        callback(null, true); 
       } else {
-        // برای امنیت بیشتر، در کنسول سرور لاگ می‌شود اما به کلاینت نشان داده نمی‌شود
         console.error(`CORS blocked request from origin: ${origin}`);
-        callback(new Error(`Not allowed by CORS for origin: ${origin}`)); // اجازه داده نشد
+        callback(new Error(`Not allowed by CORS for origin: ${origin}`));
       }
     },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
 
+  // === ۳. شروع گوش دادن سرور ===
   await app.listen(process.env.PORT || 3000);
 }
 bootstrap();
