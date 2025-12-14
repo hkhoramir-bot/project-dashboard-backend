@@ -17,16 +17,25 @@ async function bootstrap() {
   );
 
   // === ۳. تنظیمات CORS ===
-  const allowedOrigins = [
-    'https://automatic-couscous-69q5wq9pv4gq35vj-5173.app.github.dev', // Codespace
-    'http://localhost:5173', // لوکال
-    // 'https://your-production-frontend.com', // در صورت استقرار پرو덕شن
-  ];
-
   app.enableCors({
     origin: (origin, callback) => {
-      // اگر origin undefined باشد (مثلاً Postman) یا در لیست مجاز باشد، قبول کن
-      if (!origin || allowedOrigins.includes(origin)) {
+      // اجازه دادن به Postman / Curl
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      // لیست origin های مجاز
+      const allowedOrigins = [
+        'https://automatic-couscous-69q5wq9pv4gq35vj-5173.app.github.dev', // Codespace
+        'http://localhost:5173', // لوکال
+        // 'https://your-production-frontend.com', // در صورت استقرار پرو덕شن
+      ];
+
+      // بررسی با startsWith برای جلوگیری از مشکلات اسلش / پورت
+      const isAllowed = allowedOrigins.some(o => origin.startsWith(o));
+
+      if (isAllowed) {
         callback(null, true);
       } else {
         console.error(`CORS blocked request from origin: ${origin}`);
