@@ -6,7 +6,7 @@ import { AuthController } from './auth.controller';
 @Module({
   imports: [
     JwtModule.register({
-      secret: 'SECRET_KEY_خیلی_امن', // بعداً از ENV بخون
+      secret: 'SECRET_KEY_خیلی_امن', // بهتر است از ENV بخوانید
       signOptions: { expiresIn: '1h' },
     }),
   ],

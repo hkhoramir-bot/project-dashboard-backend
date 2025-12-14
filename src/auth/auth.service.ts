@@ -1,36 +1,74 @@
-// src/auth/auth.service.ts (فایل اصلاح شده)
-
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import prisma from '../prismaClient';
-import { Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { Injectable } from '@nestjs/common';
+import { Role } from '@prisma/client';
+
+// DTO پیشنهادی
+interface RegisterUserDto {
+  name: string;
+  email: string;
+  password: string;
+  role?: Role; // اختیاری، اگر مشخص نشود پیش‌فرض USER در Prisma اعمال می‌شود
+}
+
+interface LoginUserDto {
+  email: string;
+  password: string;
+}
 
 @Injectable()
 export class AuthService {
-  // متد createUser به register تغییر نام یافت
-  async register(userData: { name: string; email: string; password: string; role: Role }) {
+  constructor(private readonly jwtService: JwtService) {}
+
+  // ثبت‌نام کاربر
+  async register(userData: RegisterUserDto) {
     const hashedPassword = await bcrypt.hash(userData.password, 10);
+
     const user = await prisma.user.create({
       data: {
         name: userData.name,
         email: userData.email,
         password: hashedPassword,
-        // اگر در اسکیمای Prisma برای role مقدار @default(USER) قرار داده‌اید،
-        // می‌توانید این خط را حذف کنید تا اگر کاربر نقش را در ورودی مشخص نکرد، پیش‌فرض اعمال شود.
-        role: userData.role, 
+        role: userData.role || Role.USER, // اگر مقدار role نبود، USER پیش‌فرض شود
       },
     });
-    // فیلدهای حساس مانند password نباید برگردانده شوند.
-    return { id: user.id, email: user.email, role: user.role };
+
+    // بازگشت اطلاعات ضروری بدون password
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    };
   }
 
-  // متد validateUser به login تغییر نام یافت و آماده برای استفاده در Local Strategy است
-  async login(email: string, password: string) {
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (user && (await bcrypt.compare(password, user.password))) {
-      // فقط اطلاعات ضروری را برای JWT یا Session برگردانید
-      return { id: user.id, email: user.email, role: user.role }; 
+  // ورود کاربر و ایجاد JWT
+  async login(dto: LoginUserDto) {
+    const user = await prisma.user.findUnique({ where: { email: dto.email } });
+
+    if (!user) {
+      throw new UnauthorizedException('ایمیل یا رمز عبور اشتباه است');
     }
-    return null;
+
+    const passwordValid = await bcrypt.compare(dto.password, user.password);
+    if (!passwordValid) {
+      throw new UnauthorizedException('ایمیل یا رمز عبور اشتباه است');
+    }
+
+    // payload شامل id و role
+    const payload = { sub: user.id, role: user.role };
+    const access_token = this.jwtService.sign(payload);
+
+    // بازگشت توکن و اطلاعات کاربر
+    return {
+      access_token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    };
   }
 }
