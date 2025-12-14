@@ -1,20 +1,53 @@
-import { Controller, Post, Body } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { RegisterUserDto, LoginUserDto } from './dto'; // فرض می‌کنیم DTO ها در یک فایل dto/index.ts جمع شده‌اند
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import prisma from '../prismaClient';
+import * as bcrypt from 'bcrypt';
+import { Role } from '@prisma/client';
+import { RegisterUserDto } from './register-user.dto';
+import { LoginUserDto } from './login-user.dto';
 
-@Controller('auth')
-export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+@Injectable()
+export class AuthService {
+  constructor(private readonly jwtService: JwtService) {}
 
-  // ثبت‌نام
-  @Post('register')
-  async register(@Body() dto: RegisterUserDto) {
-    return this.authService.register(dto);
+  async register(userData: RegisterUserDto) {
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    const user = await prisma.user.create({
+      data: {
+        name: userData.name,
+        email: userData.email,
+        password: hashedPassword,
+        role: userData.role || Role.USER,
+      },
+    });
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    };
   }
 
-  // ورود
-  @Post('login')
-  async login(@Body() dto: LoginUserDto) {
-    return this.authService.login(dto); // ✅ فقط یک آرگومان
+  async login(dto: LoginUserDto) {
+    const user = await prisma.user.findUnique({ where: { email: dto.email } });
+
+    if (!user) throw new UnauthorizedException('ایمیل یا رمز عبور اشتباه است');
+
+    const passwordValid = await bcrypt.compare(dto.password, user.password);
+    if (!passwordValid) throw new UnauthorizedException('ایمیل یا رمز عبور اشتباه است');
+
+    const payload = { sub: user.id, role: user.role };
+    const access_token = this.jwtService.sign(payload);
+
+    return {
+      access_token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    };
   }
 }
