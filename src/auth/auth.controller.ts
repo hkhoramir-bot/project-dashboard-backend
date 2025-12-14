@@ -1,6 +1,7 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { RegisterUserDto, LoginUserDto } from './dto'; // فرض می‌کنیم DTO ها در یک فایل dto/index.ts جمع شده‌اند
+import { RegisterUserDto } from './register-user.dto';
+import { LoginUserDto } from './login-user.dto';
 
 @Controller('auth')
 export class AuthController {
