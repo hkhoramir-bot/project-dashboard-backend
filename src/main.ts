@@ -10,7 +10,7 @@ async function bootstrap() {
   // حذف اسلش انتهایی از آدرس Codespace (بسیار مهم)
   const allowedOrigins = [
     'https://automatic-couscous-69q5wq9pv4gq35vj-5174.app.github.dev', // ✅ اصلاح شد (اسلش / آخر حذف شد)
-    'http://localhost:5173',
+    'http://localhost:5174',
     // آدرس‌های production آینده را اینجا اضافه کنید
   ];
 
