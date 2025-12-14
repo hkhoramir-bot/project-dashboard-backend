@@ -1,27 +1,20 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { RegisterUserDto } from './register-user.dto';
+import { RegisterUserDto, LoginUserDto } from './dto'; // فرض می‌کنیم DTO ها در یک فایل dto/index.ts جمع شده‌اند
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  /**
-   * ثبت‌نام کاربر
-   */
+  // ثبت‌نام
   @Post('register')
   async register(@Body() dto: RegisterUserDto) {
     return this.authService.register(dto);
   }
 
-  /**
-   * لاگین کاربر
-   * (نسخه موقت – بعداً JWT کامل می‌کنیم)
-   */
+  // ورود
   @Post('login')
-  async login(
-    @Body() body: { email: string; password: string }
-  ) {
-    return this.authService.login(body.email, body.password);
+  async login(@Body() dto: LoginUserDto) {
+    return this.authService.login(dto); // ✅ فقط یک آرگومان
   }
 }
