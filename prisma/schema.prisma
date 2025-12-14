@@ -5,7 +5,8 @@ enum Role {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // مقدار DATABASE_URL را از فایل .env یا Environment Variable می‌خواند
+  url = env("DATABASE_URL")
 }
 
 generator client {
@@ -17,7 +18,7 @@ model User {
   name     String
   email    String   @unique
   password String
-  role     Role
+  role     Role     @default(USER)
   tasks    Task[]   @relation("UserTasks")
 }
 
