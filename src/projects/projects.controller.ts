@@ -3,7 +3,8 @@ import { Controller, Get, Post, Body, UseGuards, Req } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { ProjectsService, Project } from './projects.service'; 
+import { ProjectsService } from './projects.service';
+import type { Project } from './projects.service'; // ⚡️ فقط type
 import { CreateProjectDto } from './dto/create-project.dto';
 
 // نوع کاربر لاگین شده
