@@ -7,23 +7,30 @@ import { Roles } from '../auth/roles.decorator';
 import { ProjectsService } from './projects.service'; 
 import { CreateProjectDto } from './dto/create-project.dto'; 
 
-@Controller('api/v1/projects') // ✅ مسیر استاندارد REST API
+// تعریف نوع کاربر لاگین شده
+interface AuthUser {
+  id: string;
+  email: string;
+  role: 'ADMIN' | 'MANAGER' | 'USER';
+}
+
+@Controller('api/v1/projects')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ProjectsController {
     
     constructor(private readonly projectsService: ProjectsService) {}
 
-    // GET: لیست پروژه‌ها (با نقش USER)
+    // GET: لیست پروژه‌ها
     @Get()
     @Roles('ADMIN', 'MANAGER', 'USER')
-    findAll(@Req() req) {
+    findAll(@Req() req: { user: AuthUser }) {
         return this.projectsService.findAll(req.user); 
     }
 
-    // POST: ایجاد پروژه (فقط ADMIN و MANAGER)
+    // POST: ایجاد پروژه
     @Post()
     @Roles('ADMIN', 'MANAGER')
-    create(@Body() createProjectDto: CreateProjectDto, @Req() req) {
+    create(@Body() createProjectDto: CreateProjectDto, @Req() req: { user: AuthUser }) {
         return this.projectsService.create(createProjectDto, req.user);
     }
 }
