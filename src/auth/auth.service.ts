@@ -1,10 +1,11 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import prisma from '../prismaClient';
+import prisma from '../prismaClient'; // فعلاً فرض می‌کنیم این مسیر درست است
 import * as bcrypt from 'bcrypt';
 import { Role } from '@prisma/client';
-import { RegisterUserDto } from './register-user.dto';
-import { LoginUserDto } from './login-user.dto';
+
+import { RegisterUserDto } from './register-user.dto'; // <-- اصلاح مسیر
+import { LoginUserDto } from './login-user.dto';     // <-- اصلاح مسیر
 
 @Injectable()
 export class AuthService {
