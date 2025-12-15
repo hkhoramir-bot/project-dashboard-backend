@@ -14,7 +14,7 @@ interface AuthUser {
   role: 'ADMIN' | 'MANAGER' | 'USER';
 }
 
-@Controller('api/v1/projects')
+@Controller('projects')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
