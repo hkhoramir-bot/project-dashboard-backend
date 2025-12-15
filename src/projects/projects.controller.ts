@@ -1,13 +1,12 @@
 // src/projects/projects.controller.ts
-
 import { Controller, Get, Post, Body, UseGuards, Req } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { ProjectsService } from './projects.service'; 
-import { CreateProjectDto } from './dto/create-project.dto'; 
+import { ProjectsService, Project } from './projects.service'; 
+import { CreateProjectDto } from './dto/create-project.dto';
 
-// تعریف نوع کاربر لاگین شده
+// نوع کاربر لاگین شده
 interface AuthUser {
   id: string;
   email: string;
@@ -17,20 +16,19 @@ interface AuthUser {
 @Controller('api/v1/projects')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ProjectsController {
-    
-    constructor(private readonly projectsService: ProjectsService) {}
+  constructor(private readonly projectsService: ProjectsService) {}
 
-    // GET: لیست پروژه‌ها
-    @Get()
-    @Roles('ADMIN', 'MANAGER', 'USER')
-    findAll(@Req() req: { user: AuthUser }) {
-        return this.projectsService.findAll(req.user); 
-    }
+  // GET: لیست پروژه‌ها
+  @Get()
+  @Roles('ADMIN', 'MANAGER', 'USER')
+  findAll(@Req() req: { user: AuthUser }): Project[] {
+    return this.projectsService.findAll(req.user);
+  }
 
-    // POST: ایجاد پروژه
-    @Post()
-    @Roles('ADMIN', 'MANAGER')
-    create(@Body() createProjectDto: CreateProjectDto, @Req() req: { user: AuthUser }) {
-        return this.projectsService.create(createProjectDto, req.user);
-    }
+  // POST: ایجاد پروژه
+  @Post()
+  @Roles('ADMIN', 'MANAGER')
+  create(@Body() createProjectDto: CreateProjectDto, @Req() req: { user: AuthUser }): Project {
+    return this.projectsService.create(createProjectDto, req.user);
+  }
 }
