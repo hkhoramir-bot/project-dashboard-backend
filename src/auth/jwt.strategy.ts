@@ -1,10 +1,13 @@
-// src/auth/jwt.strategy.ts (اصلاح شده)
+// src/auth/jwt.strategy.ts (اصلاح شده برای عیب‌یابی خطای 401)
 
 import prisma from '../prismaClient';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable } from '@nestjs/common';
-import { UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+
+// ⚠️ کلید موقت برای عیب‌یابی: این کلید باید دقیقا با کلید JwtModule در auth.module.ts یکسان باشد.
+// این اصلاح برای اطمینان از نادیده گرفتن خطاهای محیطی (process.env.JWT_SECRET) است.
+const TEMP_SECRET_KEY = 'YOUR_SUPER_DUPER_TEST_SECRET_401_FIX'; 
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') { 
@@ -13,8 +16,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
-            // ✅ اصلاح شد: کلید پیش فرض را با کلید AuthModule یکسان می‌کنیم
-            secretOrKey: process.env.JWT_SECRET || 'SECRET_KEY_خیلی_امن', 
+            // ✅ اصلاح: استفاده از کلید ثابت برای تست اعتبارسنجی
+            secretOrKey: TEMP_SECRET_KEY, 
         });
     }
 
@@ -27,7 +30,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         }
         
         // ۲. پاسپورت این شیء را به req.user اختصاص می‌دهد
-        // 💡 شما ممکن است بخواهید password را اینجا حذف کنید
         const { password, ...result } = user; 
         return result; 
     }
